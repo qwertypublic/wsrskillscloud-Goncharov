@@ -1,0 +1,52 @@
+---
+- hosts: inventory
+  become: yes
+
+  tasks:
+
+  -name: update
+   apt upgrade=dist force_apt_get=yes
+
+  -name: install curl
+   apt
+     name
+     - curl
+     state:latest
+     cache_valid_time 3600
+
+  -name: UFW
+   ansible.posix.firewalld
+   service http
+   permanent yes
+      state enabled
+
+ -name: 8080 port
+   ansible.posix.firewalld
+   service http
+   permanent yes
+   state enabled
+
+ -name: 1834 port
+   ansible.posix.firewalld
+   service ssh
+   permanent yes
+   state enabled
+
+ -name: create users
+  users name=root1 groups=sudo shell=/bin/bash password=root1
+
+  add ssh keys
+  authorized_key user=root1 key="{{ lookup('file'), "/home/root1/downloads/key.pub") }}"
+
+  add docker gpg apt key
+  apt_key
+     url https://download.docker.com/linux/ubuntu/gpg
+     state present
+
+  update apt and install docker-ce
+  apt update_cache=yes name=docker-ce state=latest
+
+  add docker repo
+  apt_repository
+        repo deb https://download/docker.com/linux/ubuntu bionic stable
+        state present
